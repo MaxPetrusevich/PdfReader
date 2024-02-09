@@ -53,10 +53,6 @@ namespace PdfReader
             FillPages(richTextBox1,pageText);
         }
 
-        private static IReadOnlyList<TextBlock> GetTextBlocks(IEnumerable<Word> words, DocstrumBoundingBoxes pageSegmenter)
-        {
-            return pageSegmenter.GetBlocks(words);
-        }
 
         private void splitContainer1_Panel1_Paint(object sender, PaintEventArgs e)
         {

@@ -1,18 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
-using UglyToad.PdfPig.DocumentLayoutAnalysis.PageSegmenter;
-using UglyToad.PdfPig.DocumentLayoutAnalysis.ReadingOrderDetector;
-using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
 using UglyToad.PdfPig;
-using System.Drawing;
-using System.Collections.Generic;
-using UglyToad.PdfPig.DocumentLayoutAnalysis;
 using UglyToad.PdfPig.Content;
-using System.Linq;
-using UglyToad.PdfPig.Graphics;
-using SixLabors.Fonts;
-using TextRenderer = System.Windows.Forms.TextRenderer;
 using Font = System.Drawing.Font;
 using FontStyle = System.Drawing.FontStyle;
 
@@ -54,11 +46,6 @@ namespace PdfReader
         }
 
 
-        private void splitContainer1_Panel1_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
         private void button2_Click(object sender, EventArgs e)
         {
             richTextBox1.Font = new Font(richTextBox1.Font.FontFamily, richTextBox1.Font.Size - 1, FontStyle.Regular);
@@ -81,10 +68,7 @@ namespace PdfReader
             label1.Text = page.ToString();
         }
 
-        private void label2_Click(object sender, EventArgs e)
-        {
-
-        }
+     
 
         private void button5_Click(object sender, EventArgs e)
         {
@@ -97,15 +81,6 @@ namespace PdfReader
 
         }
 
-        private void label3_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void richTextBox1_TextChanged(object sender, EventArgs e)
-        {
-
-        }
 
         private void richTextBox1_FontChanged(object sender, EventArgs e)
         {

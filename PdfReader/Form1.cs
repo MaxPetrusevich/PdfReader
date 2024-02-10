@@ -12,90 +12,93 @@ namespace PdfReader
 {
     public partial class Form1 : Form
     {
-        List<String> pages= new List<String>();
+        List<String> pages = new List<String>();
         string pageText = "";
         int page = 0;
+
         public Form1()
         {
             InitializeComponent();
-            
+            UpdateButtonSizeAndPosition();
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            var openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "PDF files (*.pdf)|*.pdf|All files (*.*)|*.*";
-            pageText = "";
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            try
             {
-                var document = PdfDocument.Open(openFileDialog.FileName);
-                foreach (Page page in document.GetPages())
+                var openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "PDF files (*.pdf)|*.pdf|All files (*.*)|*.*";
+                pageText = "";
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                 
-                    pageText+=page.Text;
-                    
+                    var document = PdfDocument.Open(openFileDialog.FileName);
+                    foreach (Page page in document.GetPages())
+                    {
+                        pageText += page.Text;
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Что-то пошло не так", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             richTextBox1.Font = new Font(richTextBox1.Font.FontFamily, richTextBox1.Font.Size, FontStyle.Regular);
-            FillPages(richTextBox1,pageText);
+            FillPages(richTextBox1, pageText);
         }
 
 
         private void button2_Click(object sender, EventArgs e)
         {
             richTextBox1.Font = new Font(richTextBox1.Font.FontFamily, richTextBox1.Font.Size - 1, FontStyle.Regular);
-
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            richTextBox1.Font = new Font(richTextBox1.Font.FontFamily, richTextBox1.Font.Size +1 , FontStyle.Regular);
-            
+            richTextBox1.Font = new Font(richTextBox1.Font.FontFamily, richTextBox1.Font.Size + 1, FontStyle.Regular);
         }
 
         private void button4_Click(object sender, EventArgs e)
         {
-            if(page-1<0)
+            if (page < 1)
             {
                 return;
             }
+
             richTextBox1.Text = pages[--page];
             label1.Text = page.ToString();
         }
 
-     
 
         private void button5_Click(object sender, EventArgs e)
         {
-            if(page+1>pages.Count-1)
+            if (page + 1 > pages.Count - 1)
             {
                 return;
             }
+
             richTextBox1.Text = pages[++page];
             label1.Text = page.ToString();
-
         }
 
 
         private void richTextBox1_FontChanged(object sender, EventArgs e)
         {
-            FillPages(richTextBox1,pageText);
+            FillPages(richTextBox1, pageText);
         }
-
 
 
         private int CalculateCharsPerLine(RichTextBox richTextBox)
         {
             using (Graphics g = richTextBox.CreateGraphics())
             {
-               
                 float charSize = richTextBox.Font.Size;
-                int charsPerLine = (int)(richTextBox.Width / (charSize/1.3333));
+                int charsPerLine = (int)(richTextBox.Width / (charSize / 1.3333));
                 return charsPerLine;
             }
         }
@@ -164,28 +167,61 @@ namespace PdfReader
                 }
             }
 
-           
+
             pages.Add($"{Environment.NewLine}{currentPageText.ToString()}{Environment.NewLine}");
-            if(pages.Count<=page)
+            if (pages.Count <= page)
             {
                 page -= 1;
             }
+
             richTextBox1.Text = pages[page];
             label1.Text = page.ToString();
             label2.Text = "/";
-            label2.Text += currentPage-1;
+            label2.Text += currentPage - 1;
+            UpdateButtonSizeAndPosition();
         }
 
         private void Form1_SizeChanged(object sender, EventArgs e)
         {
-            if(pageText.Length > 0) {
+            UpdateButtonSizeAndPosition();
+            if (pageText.Length > 0)
+            {
                 FillPages(richTextBox1, pageText);
             }
             else
             {
                 return;
             }
-           
+        }
+
+        private void UpdateButtonSizeAndPosition()
+        {
+            // Рассчитываем новые размеры кнопок и положение элементов относительно размеров формы
+            int buttonWidth = ClientSize.Width / 10; // Например, 1/10 ширины формы
+            int buttonHeight = 25; // Высота кнопок
+            int margin = 5; // Отступ между кнопками
+
+            // Обновляем размеры и положение кнопок
+            button1.Size = new Size(buttonWidth, buttonHeight);
+            button1.Location = new Point(0, 0);
+
+            button2.Size = new Size(buttonWidth, buttonHeight);
+            button2.Location = new Point(button1.Right + margin, 0);
+
+            button3.Size = new Size(buttonWidth, buttonHeight);
+            button3.Location = new Point(button2.Right + margin, 0);
+
+            button4.Size = new Size(buttonWidth, buttonHeight);
+            button4.Location = new Point(button3.Right + margin, 0);
+            // Располагаем label
+            label1.Location = new Point(button4.Right + margin, 4);
+            label2.Location = new Point(label1.Right + 2, 4);
+
+            button5.Size = new Size(buttonWidth, buttonHeight);
+            button5.Location = new Point(label2.Right + margin, 0);
+            // Обновляем положение richTextBox1
+            richTextBox1.Location = new Point(0, button1.Bottom + margin);
+            richTextBox1.Size = new Size(ClientSize.Width, ClientSize.Height - richTextBox1.Top);
         }
     }
 }

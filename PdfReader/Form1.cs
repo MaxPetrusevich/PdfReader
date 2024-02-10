@@ -128,7 +128,7 @@ namespace PdfReader
 
             foreach (string word in words)
             {
-                if (currentLine.Length + word.Length + 1 <= charactersPerLine) // Учитываем пробел
+                if (currentLine.Length + word.Length + 1 <= charactersPerLine) 
                 {
                     currentLine.Append(word);
                     currentLine.Append(" ");
@@ -163,7 +163,7 @@ namespace PdfReader
                     currentPage++;
                     currentPageText.Clear();
                     currentPageText.AppendLine(line);
-                    currentLines = 1; // Учитываем первую строку новой страницы
+                    currentLines = 1;
                 }
             }
 
@@ -196,12 +196,10 @@ namespace PdfReader
 
         private void UpdateButtonSizeAndPosition()
         {
-            // Рассчитываем новые размеры кнопок и положение элементов относительно размеров формы
-            int buttonWidth = ClientSize.Width / 10; // Например, 1/10 ширины формы
-            int buttonHeight = 25; // Высота кнопок
-            int margin = 5; // Отступ между кнопками
-
-            // Обновляем размеры и положение кнопок
+            int buttonWidth = ClientSize.Width / 10; 
+            int buttonHeight = 25; 
+            int margin = 5; 
+            
             button1.Size = new Size(buttonWidth, buttonHeight);
             button1.Location = new Point(0, 0);
 
@@ -213,13 +211,13 @@ namespace PdfReader
 
             button4.Size = new Size(buttonWidth, buttonHeight);
             button4.Location = new Point(button3.Right + margin, 0);
-            // Располагаем label
+
             label1.Location = new Point(button4.Right + margin, 4);
             label2.Location = new Point(label1.Right + 2, 4);
 
             button5.Size = new Size(buttonWidth, buttonHeight);
             button5.Location = new Point(label2.Right + margin, 0);
-            // Обновляем положение richTextBox1
+
             richTextBox1.Location = new Point(0, button1.Bottom + margin);
             richTextBox1.Size = new Size(ClientSize.Width, ClientSize.Height - richTextBox1.Top);
         }

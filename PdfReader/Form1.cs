@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
@@ -26,19 +29,35 @@ namespace PdfReader
         {
         }
 
+        [SuppressMessage("ReSharper.DPA", "DPA0003: Excessive memory allocations in LOH", MessageId = "type: System.String; size: 46881MB")]
         private void button1_Click(object sender, EventArgs e)
         {
             try
             {
                 var openFileDialog = new OpenFileDialog();
-                openFileDialog.Filter = "PDF files (*.pdf)|*.pdf|All files (*.*)|*.*";
+                openFileDialog.Filter = "TXT files (*.txt)|*.txt|All files (*.*)|*.*";
                 pageText = "";
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    var document = PdfDocument.Open(openFileDialog.FileName);
-                    foreach (Page page in document.GetPages())
+                    string filePath = openFileDialog.FileName;
+    
+                    try
                     {
-                        pageText += page.Text;
+                        // Открываем файл для чтения
+                        using (StreamReader sr = new StreamReader(filePath))
+                        {
+                            // Читаем и выводим содержимое файла построчно
+                            string line;
+                            while ((line = sr.ReadLine()) != null)
+                            {
+                                pageText += line;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Произошла ошибка: ",ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
                     }
                 }
             }
@@ -71,7 +90,7 @@ namespace PdfReader
             }
 
             richTextBox1.Text = pages[--page];
-            label1.Text = page.ToString();
+            textBox1.Text = page.ToString();
         }
 
 
@@ -83,7 +102,7 @@ namespace PdfReader
             }
 
             richTextBox1.Text = pages[++page];
-            label1.Text = page.ToString();
+            textBox1.Text = page.ToString();
         }
 
 
@@ -175,7 +194,7 @@ namespace PdfReader
             }
 
             richTextBox1.Text = pages[page];
-            label1.Text = page.ToString();
+            textBox1.Text = page.ToString();
             label2.Text = "/";
             label2.Text += currentPage - 1;
             UpdateButtonSizeAndPosition();
@@ -212,14 +231,54 @@ namespace PdfReader
             button4.Size = new Size(buttonWidth, buttonHeight);
             button4.Location = new Point(button3.Right + margin, 0);
 
-            label1.Location = new Point(button4.Right + margin, 4);
-            label2.Location = new Point(label1.Right + 2, 4);
+            textBox1.Location = new Point(button4.Right + margin, 4);
+            label2.Location = new Point(textBox1.Right + 2, 4);
 
             button5.Size = new Size(buttonWidth, buttonHeight);
             button5.Location = new Point(label2.Right + margin, 0);
 
             richTextBox1.Location = new Point(0, button1.Bottom + margin);
             richTextBox1.Size = new Size(ClientSize.Width, ClientSize.Height - richTextBox1.Top);
+        }
+
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (pages.Count == 0)
+                {
+                    throw new Exception("Необходимо открыть файл");
+                }
+                if (textBox1.Text == String.Empty)
+                {
+                    throw new Exception("Введите номер страницы");
+                }
+
+                Regex regex = new Regex("^(-?\\d+){1}$");
+                MatchCollection matchCollection = regex.Matches(textBox1.Text);
+                if (matchCollection.Count == 0)
+                {
+                    throw new Exception("Введен некорректный номер страницы");
+                }
+
+                int num = int.Parse(textBox1.Text);
+                if (num > pages.Count)
+                {
+                    throw new Exception("Такой страницы не существует");
+                }
+
+                if (num < 0)
+                {
+                    throw new Exception("Номер страницы не может быть отрицательным");
+                }
+                richTextBox1.Text = pages[num];
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message,"Ошибка" , MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SixLabors.ImageSharp.Drawing;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
@@ -8,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
+using UglyToad.PdfPig.Graphics.Operations.TextObjects;
 using Font = System.Drawing.Font;
 using FontStyle = System.Drawing.FontStyle;
 
@@ -16,7 +18,7 @@ namespace PdfReader
     public partial class Form1 : Form
     {
         List<String> pages = new List<String>();
-        string pageText = "";
+        StringBuilder pageText=new StringBuilder();
         int page = 0;
 
         public Form1()
@@ -29,30 +31,25 @@ namespace PdfReader
         {
         }
 
-        [SuppressMessage("ReSharper.DPA", "DPA0003: Excessive memory allocations in LOH", MessageId = "type: System.String; size: 46881MB")]
         private void button1_Click(object sender, EventArgs e)
         {
+            
             try
             {
                 var openFileDialog = new OpenFileDialog();
                 openFileDialog.Filter = "TXT files (*.txt)|*.txt|All files (*.*)|*.*";
-                pageText = "";
+               
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     string filePath = openFileDialog.FileName;
     
                     try
                     {
-                        // Открываем файл для чтения
                         using (StreamReader sr = new StreamReader(filePath))
                         {
-                            // Читаем и выводим содержимое файла построчно
-                            string line;
-                            while ((line = sr.ReadLine()) != null)
-                            {
-                                pageText += line;
-                            }
+                            pageText.Append(sr.ReadToEndAsync().Result);
                         }
+                          
                     }
                     catch (Exception ex)
                     {
@@ -66,8 +63,7 @@ namespace PdfReader
                 MessageBox.Show(ex.Message, "Что-то пошло не так", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-
-            richTextBox1.Font = new Font(richTextBox1.Font.FontFamily, richTextBox1.Font.Size, FontStyle.Regular);
+            richTextBox1.Font = new Font(richTextBox1.Font.FontFamily, 12, FontStyle.Regular);
             FillPages(richTextBox1, pageText);
         }
 
@@ -117,7 +113,7 @@ namespace PdfReader
             using (Graphics g = richTextBox.CreateGraphics())
             {
                 float charSize = richTextBox.Font.Size;
-                int charsPerLine = (int)(richTextBox.Width / (charSize / 1.3333));
+                int charsPerLine = (int)(richTextBox.Width / (charSize/1.33));
                 return charsPerLine;
             }
         }
@@ -127,37 +123,35 @@ namespace PdfReader
             using (Graphics g = richTextBox.CreateGraphics())
             {
                 SizeF charSize = g.MeasureString("a", richTextBox.Font);
-                int charsPerLine = (int)(richTextBox.Width / charSize.Width);
                 int linesPerPage = (int)(richTextBox.Height / charSize.Height);
                 return linesPerPage;
             }
         }
 
 
-        private void FillPages(RichTextBox richTextBox, string text)
+        private void FillPages(RichTextBox richTextBox, StringBuilder Text)
         {
+            StringBuilder text = Text.Replace('\n', ' ').Replace('\t', ' ').Replace('\r', ' ');
             pages.Clear();
             int linesPerPage = CalculateLinesPerPage(richTextBox);
             int charactersPerLine = CalculateCharsPerLine(richTextBox);
 
             List<string> lines = new List<string>();
-            string[] words = text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            char[] words = text.ToString().ToCharArray();
 
             StringBuilder currentLine = new StringBuilder();
 
-            foreach (string word in words)
+            foreach (char word in words)
             {
-                if (currentLine.Length + word.Length + 1 <= charactersPerLine) 
+                if (currentLine.Length <= charactersPerLine) 
                 {
                     currentLine.Append(word);
-                    currentLine.Append(" ");
                 }
                 else
                 {
                     lines.Add(currentLine.ToString().Trim());
                     currentLine.Clear();
                     currentLine.Append(word);
-                    currentLine.Append(" ");
                 }
             }
 
@@ -178,7 +172,7 @@ namespace PdfReader
                 }
                 else
                 {
-                    pages.Add($"{Environment.NewLine}{currentPageText.ToString()}{Environment.NewLine}");
+                    pages.Add($"{currentPageText.ToString()}");
                     currentPage++;
                     currentPageText.Clear();
                     currentPageText.AppendLine(line);
@@ -187,7 +181,7 @@ namespace PdfReader
             }
 
 
-            pages.Add($"{Environment.NewLine}{currentPageText.ToString()}{Environment.NewLine}");
+            pages.Add($"{currentPageText.ToString()}");
             if (pages.Count <= page)
             {
                 page -= 1;

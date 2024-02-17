@@ -1,15 +1,10 @@
-﻿using SixLabors.ImageSharp.Drawing;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using UglyToad.PdfPig;
-using UglyToad.PdfPig.Content;
-using UglyToad.PdfPig.Graphics.Operations.TextObjects;
 using Font = System.Drawing.Font;
 using FontStyle = System.Drawing.FontStyle;
 
@@ -137,11 +132,9 @@ namespace PdfReader
             int charactersPerLine = CalculateCharsPerLine(richTextBox);
 
             List<string> lines = new List<string>();
-            char[] words = text.ToString().ToCharArray();
-
             StringBuilder currentLine = new StringBuilder();
-
-            foreach (char word in words)
+           
+            foreach (char word in Text.ToString() )
             {
                 if (currentLine.Length <= charactersPerLine) 
                 {

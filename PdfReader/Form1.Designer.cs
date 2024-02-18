@@ -82,25 +82,25 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(240, 4);
+            this.textBox1.Location = new System.Drawing.Point(245, 4);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(15, 20);
             this.textBox1.TabIndex = 7;
-            this.textBox1.Text = "0";
+            this.textBox1.Text = "1";
             this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(256, 9);
+            this.label2.Location = new System.Drawing.Point(266, 7);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(10, 15);
+            this.label2.Size = new System.Drawing.Size(12, 13);
             this.label2.TabIndex = 6;
             this.label2.Text = "/";
             // 
             // button5
             // 
-            this.button5.Location = new System.Drawing.Point(287, 3);
+            this.button5.Location = new System.Drawing.Point(297, 4);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(53, 23);
             this.button5.TabIndex = 4;
@@ -141,6 +141,7 @@
             // richTextBox1
             // 
             this.richTextBox1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.richTextBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.richTextBox1.Location = new System.Drawing.Point(0, 0);
             this.richTextBox1.Name = "richTextBox1";
             this.richTextBox1.Size = new System.Drawing.Size(690, 511);
@@ -165,6 +166,7 @@
             this.splitContainer1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.richTextBoxArray1)).EndInit();
             this.ResumeLayout(false);
+
         }
 
         private System.Windows.Forms.TextBox textBox1;

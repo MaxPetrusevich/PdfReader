@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Web.UI;
 using System.Windows.Forms;
 using Font = System.Drawing.Font;
 using FontStyle = System.Drawing.FontStyle;
@@ -14,8 +16,9 @@ namespace PdfReader
     {
         List<String> pages = new List<String>();
         StringBuilder pageText=new StringBuilder();
-        int page = 0;
-
+        int page = 1;
+        string currentFile;
+        int pageCount=0;
         public Form1()
         {
             InitializeComponent();
@@ -37,20 +40,7 @@ namespace PdfReader
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     string filePath = openFileDialog.FileName;
-    
-                    try
-                    {
-                        using (StreamReader sr = new StreamReader(filePath))
-                        {
-                            pageText.Append(sr.ReadToEndAsync().Result);
-                        }
-                          
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("Произошла ошибка: ",ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
-                    }
+                    currentFile= filePath;
                 }
             }
             catch (Exception ex)
@@ -58,8 +48,9 @@ namespace PdfReader
                 MessageBox.Show(ex.Message, "Что-то пошло не так", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            richTextBox1.Font = new Font(richTextBox1.Font.FontFamily, 12, FontStyle.Regular);
-            FillPages(richTextBox1, pageText);
+            pageCount= GetPagesCount(currentFile);
+            richTextBox1.Text = GetTextFromPage(currentFile, page);
+            label2.Text+=pageCount.ToString();
         }
 
 
@@ -75,31 +66,31 @@ namespace PdfReader
 
         private void button4_Click(object sender, EventArgs e)
         {
-            if (page < 1)
+            if (page < 2)
             {
                 return;
             }
 
-            richTextBox1.Text = pages[--page];
+            richTextBox1.Text = GetTextFromPage(currentFile, --page);
             textBox1.Text = page.ToString();
         }
 
 
         private void button5_Click(object sender, EventArgs e)
         {
-            if (page + 1 > pages.Count - 1)
+            if (page + 1 > pageCount - 1)
             {
                 return;
             }
 
-            richTextBox1.Text = pages[++page];
-            textBox1.Text = page.ToString();
+            richTextBox1.Text = GetTextFromPage(currentFile, ++page);
+            textBox1.Text=page.ToString();
         }
 
 
         private void richTextBox1_FontChanged(object sender, EventArgs e)
         {
-            FillPages(richTextBox1, pageText);
+            pageCount = GetPagesCount(currentFile);
         }
 
 
@@ -113,6 +104,52 @@ namespace PdfReader
             }
         }
 
+        private long GetFileLenght(string filePath)
+        {
+            System.IO.FileInfo file = new System.IO.FileInfo(filePath);
+            long size = file.Length;
+            return size;
+
+        }
+        private string GetTextFromPage(string filePath, int targetPageNumber)
+        {
+            StreamReader sr = new StreamReader(filePath);
+
+            int charSizeInBytes, pageSizeInBytes;
+            GetBytesPerPage(richTextBox1, out charSizeInBytes, out pageSizeInBytes);
+
+            int offset = (targetPageNumber - 1) * pageSizeInBytes;
+
+            sr.BaseStream.Seek(offset, SeekOrigin.Begin);
+
+
+            char[] buffer = new char[pageSizeInBytes / charSizeInBytes];
+
+            int bytesRead = sr.ReadBlock(buffer, 0, buffer.Length);
+
+            StringBuilder pageText = new StringBuilder();
+            
+            pageText.Append(buffer);
+            pageText.Replace('\t', ' ').Replace('\r', ' ').Replace('\n', ' ');
+            return pageText.ToString();
+        }
+
+        private void GetBytesPerPage(RichTextBox richTextBox, out int charSizeInBytes, out int pageSizeInBytes)
+        {
+            int charsPerLine = CalculateCharsPerLine(richTextBox);
+            int linesPerPage = CalculateLinesPerPage(richTextBox);
+
+            charSizeInBytes = Encoding.UTF8.GetByteCount("a");
+            pageSizeInBytes = charsPerLine * linesPerPage * charSizeInBytes;
+        }
+        private int GetPagesCount(string filePath)
+        {
+            int charSizeInBytes, pageSizeInBytes;
+            GetBytesPerPage(richTextBox1, out charSizeInBytes, out pageSizeInBytes);
+            return (int)(GetFileLenght(filePath) / pageSizeInBytes);
+
+        }
+
         private int CalculateLinesPerPage(RichTextBox richTextBox)
         {
             using (Graphics g = richTextBox.CreateGraphics())
@@ -124,75 +161,17 @@ namespace PdfReader
         }
 
 
-        private void FillPages(RichTextBox richTextBox, StringBuilder Text)
-        {
-            StringBuilder text = Text.Replace('\n', ' ').Replace('\t', ' ').Replace('\r', ' ');
-            pages.Clear();
-            int linesPerPage = CalculateLinesPerPage(richTextBox);
-            int charactersPerLine = CalculateCharsPerLine(richTextBox);
-
-            List<string> lines = new List<string>();
-            StringBuilder currentLine = new StringBuilder();
-           
-            foreach (char word in Text.ToString() )
-            {
-                if (currentLine.Length <= charactersPerLine) 
-                {
-                    currentLine.Append(word);
-                }
-                else
-                {
-                    lines.Add(currentLine.ToString().Trim());
-                    currentLine.Clear();
-                    currentLine.Append(word);
-                }
-            }
-
-            if (currentLine.Length > 0)
-            {
-                lines.Add(currentLine.ToString().Trim());
-            }
-
-            int currentPage = 1;
-            int currentLines = 0;
-            StringBuilder currentPageText = new StringBuilder();
-            foreach (string line in lines)
-            {
-                if (currentLines < linesPerPage)
-                {
-                    currentPageText.AppendLine(line);
-                    currentLines++;
-                }
-                else
-                {
-                    pages.Add($"{currentPageText.ToString()}");
-                    currentPage++;
-                    currentPageText.Clear();
-                    currentPageText.AppendLine(line);
-                    currentLines = 1;
-                }
-            }
-
-
-            pages.Add($"{currentPageText.ToString()}");
-            if (pages.Count <= page)
-            {
-                page -= 1;
-            }
-
-            richTextBox1.Text = pages[page];
-            textBox1.Text = page.ToString();
-            label2.Text = "/";
-            label2.Text += currentPage - 1;
-            UpdateButtonSizeAndPosition();
-        }
+       
 
         private void Form1_SizeChanged(object sender, EventArgs e)
         {
             UpdateButtonSizeAndPosition();
-            if (pageText.Length > 0)
+            if (richTextBox1.Text!="")
             {
-                FillPages(richTextBox1, pageText);
+                pageCount = GetPagesCount(currentFile);
+                richTextBox1.Text = GetTextFromPage(currentFile, page);
+
+                label2.Text ='/'+ pageCount.ToString();
             }
             else
             {
@@ -231,35 +210,19 @@ namespace PdfReader
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
+            if(textBox1.Text.Length==0) {
+                return;
+
+            }
+            
             try
             {
-                if (pages.Count == 0)
+                Int32.TryParse(textBox1.Text,out page);
+                if(page>pageCount)
                 {
-                    throw new Exception("Необходимо открыть файл");
+                    throw new Exception("Нет такой страницы");
                 }
-                if (textBox1.Text == String.Empty)
-                {
-                    throw new Exception("Введите номер страницы");
-                }
-
-                Regex regex = new Regex("^(-?\\d+){1}$");
-                MatchCollection matchCollection = regex.Matches(textBox1.Text);
-                if (matchCollection.Count == 0)
-                {
-                    throw new Exception("Введен некорректный номер страницы");
-                }
-
-                int num = int.Parse(textBox1.Text);
-                if (num > pages.Count)
-                {
-                    throw new Exception("Такой страницы не существует");
-                }
-
-                if (num < 0)
-                {
-                    throw new Exception("Номер страницы не может быть отрицательным");
-                }
-                richTextBox1.Text = pages[num];
+                richTextBox1.Text = GetTextFromPage(currentFile, page);
             }
             catch (Exception ex)
             {

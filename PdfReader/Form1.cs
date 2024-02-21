@@ -15,10 +15,12 @@ namespace PdfReader
     public partial class Form1 : Form
     {
         List<String> pages = new List<String>();
+        List<String> files = new List<String>();
         StringBuilder pageText=new StringBuilder();
         int page = 1;
         string currentFile;
         int pageCount=0;
+        int w = 0;
         public Form1()
         {
             InitializeComponent();
@@ -27,6 +29,34 @@ namespace PdfReader
 
         private void Form1_Load(object sender, EventArgs e)
         {
+        }
+
+        private void button_file_select(object sender, EventArgs e)
+        {
+            pageText.Clear();
+            System.Windows.Forms.Button btn = sender as System.Windows.Forms.Button;
+            string filePath = btn.Name;
+            currentFile = filePath;
+            pageCount = GetPagesCount(currentFile);
+            richTextBox1.Text = GetTextFromPage(currentFile, page);
+            label2.Text = "/";
+            label2.Text += pageCount.ToString();
+        }
+
+        private void addFile(String fileName, String filePath)
+        {
+            if (!files.Contains(filePath))
+            {
+                System.Windows.Forms.Button btn = new System.Windows.Forms.Button();
+                btn.Top = 15 + w;
+                w += 25;
+                btn.Left = 10;
+                btn.Text = fileName;
+                btn.Name = filePath;
+                btn.Click += new EventHandler(this.button_file_select);
+                panel1.Controls.Add(btn);
+                files.Add(filePath);
+            };
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -40,7 +70,12 @@ namespace PdfReader
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     string filePath = openFileDialog.FileName;
-                    currentFile= filePath;
+                    this.addFile(openFileDialog.SafeFileName, filePath);
+                    currentFile = filePath;
+                }
+                else
+                {
+                    return;
                 }
             }
             catch (Exception ex)
@@ -50,6 +85,7 @@ namespace PdfReader
             }
             pageCount= GetPagesCount(currentFile);
             richTextBox1.Text = GetTextFromPage(currentFile, page);
+            label2.Text = "/";
             label2.Text+=pageCount.ToString();
         }
 
@@ -206,7 +242,7 @@ namespace PdfReader
             richTextBox1.Location = new Point(0, button1.Bottom + margin);
             richTextBox1.Size = new Size(ClientSize.Width, ClientSize.Height - richTextBox1.Top);
         }
-
+        
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
@@ -229,6 +265,11 @@ namespace PdfReader
                 MessageBox.Show(ex.Message,"Ошибка" , MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
+        }
+
+        private void splitContainer2_Panel2_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }

@@ -35,7 +35,11 @@ namespace PdfReader
         {
             System.Windows.Forms.Button btn = sender as System.Windows.Forms.Button;
             string filePath = btn.Name;
-            currentFile = filePath;
+            string directory = Path.GetDirectoryName(filePath);
+            string fileName = Path.GetFileNameWithoutExtension(filePath);
+            string extension = Path.GetExtension(filePath);
+            string newFilePath = Path.Combine(directory, fileName + "_buff" + extension);
+            currentFile = newFilePath;
             pageCount = GetPagesCount(currentFile);
             richTextBox1.Text = GetTextFromPage(currentFile, page);
             label2.Text = "/";
@@ -71,6 +75,15 @@ namespace PdfReader
                     string filePath = openFileDialog.FileName;
                     this.addFile(openFileDialog.SafeFileName, filePath);
                     currentFile = filePath;
+                    string directory = Path.GetDirectoryName(filePath);
+                    string fileName = Path.GetFileNameWithoutExtension(filePath);
+                    string extension = Path.GetExtension(filePath);
+                    string newFilePath = Path.Combine(directory, fileName + "_buff" + extension);
+                    string text = File.ReadAllText(currentFile);
+                    text = text.Replace("\t", "").Replace("\r", "").Replace("\n", "");
+                    File.WriteAllText(newFilePath, text);
+                    currentFile = newFilePath;
+
                 }
                 else
                 {
@@ -123,7 +136,7 @@ namespace PdfReader
 
         private void button5_Click(object sender, EventArgs e)
         {
-            if (page + 1 > pageCount - 1)
+            if (page + 1 > pageCount)
             {
                 return;
             }
@@ -136,6 +149,11 @@ namespace PdfReader
         private void richTextBox1_FontChanged(object sender, EventArgs e)
         {
             pageCount = GetPagesCount(currentFile);
+            if(page>pageCount)
+            {
+                page=pageCount;
+                textBox1.Text = page.ToString();
+            }
             richTextBox1.Text = GetTextFromPage(currentFile, page);
 
             label2.Text = '/' + pageCount.ToString();
@@ -168,19 +186,18 @@ namespace PdfReader
                 int charSizeInBytes, pageSizeInBytes;
                 GetBytesPerPage(richTextBox1, out charSizeInBytes, out pageSizeInBytes);
 
-                int offset = (targetPageNumber - 1) * pageSizeInBytes;
+                int offset =(int)( (targetPageNumber-1) * pageSizeInBytes*1.81);
 
                 sr.BaseStream.Seek(offset, SeekOrigin.Begin);
 
 
-                char[] buffer = new char[pageSizeInBytes / charSizeInBytes];
+                char[] buffer = new char[pageSizeInBytes];
 
                 int bytesRead = sr.ReadBlock(buffer, 0, buffer.Length);
 
                 StringBuilder pageText = new StringBuilder();
 
-                pageText.Append(buffer);
-                pageText.Replace('\t', ' ').Replace('\r', ' ').Replace('\n', ' ');
+                pageText.Append(buffer, 0, bytesRead);
                 return pageText.ToString();
             }
             catch (Exception ex)
@@ -202,7 +219,7 @@ namespace PdfReader
         {
             int charSizeInBytes, pageSizeInBytes;
             GetBytesPerPage(richTextBox1, out charSizeInBytes, out pageSizeInBytes);
-            return (int)(GetFileLenght(filePath) / pageSizeInBytes);
+            return (int)(GetFileLenght(filePath) / pageSizeInBytes)+1;
 
         }
 
@@ -210,7 +227,7 @@ namespace PdfReader
         {
             using (Graphics g = richTextBox.CreateGraphics())
             {
-                SizeF charSize = g.MeasureString("a", richTextBox.Font);
+                SizeF charSize = g.MeasureString("а", richTextBox.Font);
                 int linesPerPage = (int)(richTextBox.Height / charSize.Height);
                 return linesPerPage;
             }
@@ -283,6 +300,7 @@ namespace PdfReader
             }
             catch (Exception ex)
             {
+                textBox1.Text = "";
                 MessageBox.Show(ex.Message,"Ошибка" , MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }

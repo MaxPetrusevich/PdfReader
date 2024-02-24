@@ -16,7 +16,7 @@ namespace PdfReader
     {
         List<String> files = new List<String>();
         int page = 1;
-        string currentFile;
+        string currentFile="";
         int pageCount=0;
         int w = 0;
         Font curentFont;
@@ -104,22 +104,34 @@ namespace PdfReader
 
         private void button2_Click(object sender, EventArgs e)
         {
-            if (curentFont.Size - 1 < 1)
+            if (currentFile == "")
             {
                 return;
             }
-            else
-            {
-             
-                curentFont = new Font(richTextBox1.Font.FontFamily, curentFont.Size - 1, FontStyle.Regular);
-                richTextBox1.Font = curentFont;
+            else {
+                if (curentFont.Size - 1 < 1)
+                {
+                    return;
+                }
+                else
+                {
+
+                    curentFont = new Font(richTextBox1.Font.FontFamily, curentFont.Size - 1, FontStyle.Regular);
+                    richTextBox1.Font = curentFont;
+                }
             }
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            curentFont = new Font(richTextBox1.Font.FontFamily, curentFont.Size + 1, FontStyle.Regular);
-            richTextBox1.Font = curentFont;
+            if(currentFile=="")
+            {
+                return;
+            }
+            {
+                curentFont = new Font(richTextBox1.Font.FontFamily, curentFont.Size + 1, FontStyle.Regular);
+                richTextBox1.Font = curentFont;
+            }
         }
 
         private void button4_Click(object sender, EventArgs e)

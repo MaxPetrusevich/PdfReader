@@ -220,7 +220,7 @@ namespace PdfReader
                 Int32.TryParse(textBox1.Text,out page);
                 if(page>pageCount)
                 {
-                    textBox1.Text = "";
+                    textBox1.Text = pageCount.ToString();
                     throw new Exception("Нет такой страницы");
                 }
                 richTextBox1.Text = GetTextFromPage(currentFile, page);

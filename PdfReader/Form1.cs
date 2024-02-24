@@ -14,13 +14,12 @@ namespace PdfReader
 {
     public partial class Form1 : Form
     {
-        List<String> pages = new List<String>();
         List<String> files = new List<String>();
-        StringBuilder pageText=new StringBuilder();
         int page = 1;
         string currentFile;
         int pageCount=0;
         int w = 0;
+        Font curentFont;
         public Form1()
         {
             InitializeComponent();
@@ -29,11 +28,11 @@ namespace PdfReader
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            curentFont = new Font(richTextBox1.Font.FontFamily, 12, FontStyle.Regular);
         }
 
         private void button_file_select(object sender, EventArgs e)
         {
-            pageText.Clear();
             System.Windows.Forms.Button btn = sender as System.Windows.Forms.Button;
             string filePath = btn.Name;
             currentFile = filePath;
@@ -92,12 +91,22 @@ namespace PdfReader
 
         private void button2_Click(object sender, EventArgs e)
         {
-            richTextBox1.Font = new Font(richTextBox1.Font.FontFamily, richTextBox1.Font.Size - 1, FontStyle.Regular);
+            if (curentFont.Size - 1 < 1)
+            {
+                return;
+            }
+            else
+            {
+             
+                curentFont = new Font(richTextBox1.Font.FontFamily, curentFont.Size - 1, FontStyle.Regular);
+                richTextBox1.Font = curentFont;
+            }
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            richTextBox1.Font = new Font(richTextBox1.Font.FontFamily, richTextBox1.Font.Size + 1, FontStyle.Regular);
+            curentFont = new Font(richTextBox1.Font.FontFamily, curentFont.Size + 1, FontStyle.Regular);
+            richTextBox1.Font = curentFont;
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -127,6 +136,9 @@ namespace PdfReader
         private void richTextBox1_FontChanged(object sender, EventArgs e)
         {
             pageCount = GetPagesCount(currentFile);
+            richTextBox1.Text = GetTextFromPage(currentFile, page);
+
+            label2.Text = '/' + pageCount.ToString();
         }
 
 
@@ -149,25 +161,33 @@ namespace PdfReader
         }
         private string GetTextFromPage(string filePath, int targetPageNumber)
         {
-            StreamReader sr = new StreamReader(filePath);
+            try
+            {
+                StreamReader sr = new StreamReader(filePath);
 
-            int charSizeInBytes, pageSizeInBytes;
-            GetBytesPerPage(richTextBox1, out charSizeInBytes, out pageSizeInBytes);
+                int charSizeInBytes, pageSizeInBytes;
+                GetBytesPerPage(richTextBox1, out charSizeInBytes, out pageSizeInBytes);
 
-            int offset = (targetPageNumber - 1) * pageSizeInBytes;
+                int offset = (targetPageNumber - 1) * pageSizeInBytes;
 
-            sr.BaseStream.Seek(offset, SeekOrigin.Begin);
+                sr.BaseStream.Seek(offset, SeekOrigin.Begin);
 
 
-            char[] buffer = new char[pageSizeInBytes / charSizeInBytes];
+                char[] buffer = new char[pageSizeInBytes / charSizeInBytes];
 
-            int bytesRead = sr.ReadBlock(buffer, 0, buffer.Length);
+                int bytesRead = sr.ReadBlock(buffer, 0, buffer.Length);
 
-            StringBuilder pageText = new StringBuilder();
-            
-            pageText.Append(buffer);
-            pageText.Replace('\t', ' ').Replace('\r', ' ').Replace('\n', ' ');
-            return pageText.ToString();
+                StringBuilder pageText = new StringBuilder();
+
+                pageText.Append(buffer);
+                pageText.Replace('\t', ' ').Replace('\r', ' ').Replace('\n', ' ');
+                return pageText.ToString();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Что-то пошло не так", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return "";
+            }
         }
 
         private void GetBytesPerPage(RichTextBox richTextBox, out int charSizeInBytes, out int pageSizeInBytes)
@@ -237,7 +257,7 @@ namespace PdfReader
             label2.Location = new Point(textBox1.Right + 2, 4);
 
             button5.Size = new Size(buttonWidth, buttonHeight);
-            button5.Location = new Point(label2.Right + margin, 0);
+            button5.Location = new Point(label2.Right + margin+20, 0);
 
             richTextBox1.Location = new Point(0, button1.Bottom + margin);
             richTextBox1.Size = new Size(ClientSize.Width, ClientSize.Height - richTextBox1.Top);

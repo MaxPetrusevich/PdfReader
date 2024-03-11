@@ -198,12 +198,12 @@ namespace PdfReader
                 int charSizeInBytes, pageSizeInBytes;
                 GetBytesPerPage(richTextBox1, out charSizeInBytes, out pageSizeInBytes);
 
-                int offset =(int)( (targetPageNumber-1) * pageSizeInBytes*1.81);
+                int offset =(int)( (targetPageNumber-1) * pageSizeInBytes);
 
                 sr.BaseStream.Seek(offset, SeekOrigin.Begin);
 
 
-                char[] buffer = new char[pageSizeInBytes];
+                char[] buffer = new char[pageSizeInBytes/2];
 
                 int bytesRead = sr.ReadBlock(buffer, 0, buffer.Length);
 
@@ -224,7 +224,7 @@ namespace PdfReader
             int charsPerLine = CalculateCharsPerLine(richTextBox);
             int linesPerPage = CalculateLinesPerPage(richTextBox);
 
-            charSizeInBytes = Encoding.UTF8.GetByteCount("a");
+            charSizeInBytes = Encoding.UTF8.GetByteCount("а");
             pageSizeInBytes = charsPerLine * linesPerPage * charSizeInBytes;
         }
         private int GetPagesCount(string filePath)
